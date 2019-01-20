@@ -78,14 +78,14 @@ class AuthSettingsControllerTest extends TestCase {
 		$this->tokenProvider->expects($this->once())
 			->method('getTokenByUser')
 			->with($this->uid)
-			->will($this->returnValue($tokens));
+			->willReturn($tokens);
 		$this->session->expects($this->once())
 			->method('getId')
-			->will($this->returnValue('session123'));
+			->willReturn('session123');
 		$this->tokenProvider->expects($this->once())
 			->method('getToken')
 			->with('session123')
-			->will($this->returnValue($sessionToken));
+			->willReturn($sessionToken);
 
 		$this->assertEquals([
 			[
@@ -118,33 +118,33 @@ class AuthSettingsControllerTest extends TestCase {
 
 		$this->session->expects($this->once())
 			->method('getId')
-			->will($this->returnValue('sessionid'));
+			->willReturn('sessionid');
 		$this->tokenProvider->expects($this->once())
 			->method('getToken')
 			->with('sessionid')
-			->will($this->returnValue($sessionToken));
+			->willReturn($sessionToken);
 		$this->tokenProvider->expects($this->once())
 			->method('getPassword')
 			->with($sessionToken, 'sessionid')
-			->will($this->returnValue($password));
+			->willReturn($password);
 		$sessionToken->expects($this->once())
 			->method('getLoginName')
-			->will($this->returnValue('User13'));
+			->willReturn('User13');
 
 		$this->secureRandom->expects($this->exactly(5))
 			->method('generate')
 			->with(5, ISecureRandom::CHAR_HUMAN_READABLE)
-			->will($this->returnValue('XXXXX'));
+			->willReturn('XXXXX');
 		$newToken = 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX';
 
 		$this->tokenProvider->expects($this->once())
 			->method('generateToken')
 			->with($newToken, $this->uid, 'User13', $password, $name, IToken::PERMANENT_TOKEN)
-			->will($this->returnValue($deviceToken));
+			->willReturn($deviceToken);
 
 		$deviceToken->expects($this->once())
 			->method('jsonSerialize')
-			->will($this->returnValue(['dummy' => 'dummy', 'canDelete' => true]));
+			->willReturn(['dummy' => 'dummy', 'canDelete' => true]);
 
 		$expected = [
 			'token' => $newToken,
@@ -174,7 +174,7 @@ class AuthSettingsControllerTest extends TestCase {
 
 		$this->session->expects($this->once())
 			->method('getId')
-			->will($this->returnValue('sessionid'));
+			->willReturn('sessionid');
 		$this->tokenProvider->expects($this->once())
 			->method('getToken')
 			->with('sessionid')
