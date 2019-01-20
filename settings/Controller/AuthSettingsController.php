@@ -30,8 +30,10 @@ namespace OC\Settings\Controller;
 use OC\AppFramework\Http;
 use OC\Authentication\Exceptions\InvalidTokenException;
 use OC\Authentication\Exceptions\PasswordlessTokenException;
+use OC\Authentication\Token\DefaultToken;
 use OC\Authentication\Token\IProvider;
 use OC\Authentication\Token\IToken;
+use OC\Authentication\Token\PublicKeyToken;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
@@ -84,7 +86,7 @@ class AuthSettingsController extends Controller {
 	 */
 	public function index() {
 		$tokens = $this->tokenProvider->getTokenByUser($this->uid);
-		
+
 		try {
 			$sessionId = $this->session->getId();
 		} catch (SessionNotAvailableException $ex) {
@@ -96,13 +98,13 @@ class AuthSettingsController extends Controller {
 			return $this->getServiceNotAvailableResponse();
 		}
 
-		return array_map(function(IToken $token) use ($sessionToken) {
+		return array_map(function (IToken $token) use ($sessionToken) {
 			$data = $token->jsonSerialize();
+			$data['canDelete'] = true;
+			$data['canRename'] = $token instanceof DefaultToken || $token instanceof PublicKeyToken;
 			if ($sessionToken->getId() === $token->getId()) {
 				$data['canDelete'] = false;
 				$data['current'] = true;
-			} else {
-				$data['canDelete'] = true;
 			}
 			return $data;
 		}, $tokens);
@@ -188,9 +190,10 @@ class AuthSettingsController extends Controller {
 	 *
 	 * @param int $id
 	 * @param array $scope
+	 * @param string $name
 	 * @return array|JSONResponse
 	 */
-	public function update($id, array $scope) {
+	public function update($id, array $scope, string $name) {
 		try {
 			$token = $this->tokenProvider->getTokenById((string)$id);
 			if ($token->getUID() !== $this->uid) {
@@ -203,6 +206,11 @@ class AuthSettingsController extends Controller {
 		$token->setScope([
 			'filesystem' => $scope['filesystem']
 		]);
+
+		if ($token instanceof DefaultToken || $token instanceof PublicKeyToken) {
+			$token->setName($name);
+		}
+
 		$this->tokenProvider->updateToken($token);
 		return [];
 	}
